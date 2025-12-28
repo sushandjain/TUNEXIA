@@ -64,10 +64,3 @@ Apna Gaana is a full-stack music streaming application built with React, Node.js
 
 ### Add Album
 ![Add Album](./readmeph/Screenshot%202025-12-28%20124250.png)
-
-## Installation and Setup
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB
-- Cloudinary account for image storage
