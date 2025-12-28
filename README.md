@@ -39,10 +39,17 @@ Apna Gaana is a full-stack music streaming application built with React, Node.js
 ## Screenshots
 
 ### Home Page
-![Home Page](./readmeph/Screenshot%202025-12-27%20020221.png)
+![Home Page](./readmeph/Screenshot%202025-12-28%20124250.png)
 
-### Login Page
-![Login Page](./readmeph/Screenshot%202025-12-27%20020703.png)
+
+### Add Album
+![Add Album](./readmeph/Screenshot%202025-12-28%20124250.png)
+
+### Add Song
+![playlist](./readmeph/Screenshot%202025-12-28%20124305.png)
+
+### List Collections
+![List Albums](./readmeph/Screenshot%202025-12-28%20124353.png)
 
 ### Album Display
 ![Album Display](./readmeph/Screenshot%202025-12-28%20124104.png)
@@ -56,17 +63,7 @@ Apna Gaana is a full-stack music streaming application built with React, Node.js
 ### Admin Dashboard
 ![Admin Dashboard](./readmeph/Screenshot%202025-12-28%20124141.png)
 
-### Add Album
-![Add Album](./readmeph/Screenshot%202025-12-28%20124250.png)
 
-### Add Song
-![Add Song](./readmeph/Screenshot%202025-12-28%20124305.png)
-
-### List Albums
-![List Albums](./readmeph/Screenshot%202025-12-28%20124353.png)
-
-### List Songs
-![List Songs](./readmeph/Screenshot%202025-12-28%20134319.png)
 
 ## Installation and Setup
 
