@@ -12,8 +12,8 @@ function AlbumItem({ image, name, desc, id }) {
                 src={image} 
                 alt={name} 
             />
-            <p className="font-bold mt-2 mb-1 text-white">{name}</p>
-            <p className="text-slate-200 text-sm">{desc}</p>
+            <p className="font-bold mt-2 mb-1 text-white truncate">{name}</p>
+            <p className="text-slate-200 text-sm truncate">{desc}</p>
         </div>
     )
 }
