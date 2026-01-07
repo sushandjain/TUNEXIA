@@ -5,18 +5,22 @@ import jwt from "jsonwebtoken";
 const loginAdmin = async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log("Login attempt:", username);
 
         if (!username || !password) {
             return res.json({ success: false, message: "Username and password are required" });
         }
 
         const admin = await adminModel.findOne({ username });
+        console.log("Admin found:", admin ? "Yes" : "No");
 
         if (!admin) {
             return res.json({ success: false, message: "Invalid credentials" });
         }
 
+        console.log("Comparing password...");
         const isMatch = await bcrypt.compare(password, admin.password);
+        console.log("Password match:", isMatch);
 
         if (!isMatch) {
             return res.json({ success: false, message: "Invalid credentials" });
@@ -27,7 +31,7 @@ const loginAdmin = async (req, res) => {
         res.json({ success: true, token });
 
     } catch (error) {
-        console.log(error);
+        console.error("Login error:", error);
         res.json({ success: false, message: error.message });
     }
 };

@@ -7,6 +7,11 @@ import connectdb from "./src/config/mongodb.js";
 const createAdmin = async () => {
     try {
         await connectdb();
+        
+        // Delete existing admin first
+        await adminModel.deleteOne({ username: "sushan" });
+        console.log("Deleted existing admin");
+        
         const hashedPassword = await bcrypt.hash("q1w2##22", 10);
         const admin = new adminModel({
             username: "sushan",
