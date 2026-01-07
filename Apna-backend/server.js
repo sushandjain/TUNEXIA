@@ -6,6 +6,7 @@ import connectdb from './src/config/mongodb.js';
 import connectCloudinary from './src/config/cloudinary.js';
 import albumRoute from './src/routes/albumRoute.js';
 import adminRoute from './src/routes/adminRoute.js';
+import debugRoute from './src/routes/debugRoute.js';
 
 const app = express();
 const port = process.env.PORT || 3004;
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 app.use('/api/song', songRoute);
 app.use('/api/album', albumRoute);
 app.use('/api/admin', adminRoute);
+app.use('/api/debug', debugRoute);
 
 // 404 handler
 app.use((req, res) => {
