@@ -53,13 +53,19 @@ app.use((err, req, res, next) => {
 // Start server function
 const startServer = async () => {
   try {
+    // Check required environment variables
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is missing');
+    }
+    if (!process.env.CLOUDINARY_NAME) {
+      throw new Error('CLOUDINARY_NAME environment variable is missing');
+    }
+
     // Connect to MongoDB first
     await connectdb();
-    console.log('✅ MongoDB connected');
 
     // Connect to Cloudinary
     connectCloudinary();
-    console.log('✅ Cloudinary configured');
 
     // Start listening
     app.listen(port, () => {
@@ -75,9 +81,15 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
+    console.log('\n⚠️  Environment Variables Required:');
+    console.log('   MONGODB_URI - Your MongoDB Atlas connection string');
+    console.log('   CLOUDINARY_NAME - Your Cloudinary cloud name');
+    console.log('   CLOUDINARY_API_KEY - Your Cloudinary API key');
+    console.log('   CLOUDINARY_API_SECRET - Your Cloudinary API secret');
     console.log('\n⚠️  Troubleshooting:');
-    console.log('1. Make sure MongoDB is running');
-    console.log('2. Check your .env file exists');
+    console.log('1. Add all environment variables in Render dashboard');
+    console.log('2. Make sure MongoDB Atlas allows connections from all IPs (0.0.0.0/0)');
+    console.log('3. Verify MongoDB connection string format');
     console.log('3. Verify port 3004 is not in use');
     process.exit(1);
   }
