@@ -5,15 +5,18 @@ function AlbumItem({ image, name, desc, id }) {
     return (
         <div 
             onClick={() => navigate(`/album/${id}`)} 
-            className="w-[180px] flex-shrink-0 p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26] transition-all"
+            className="p-4 rounded-lg bg-[#181818] hover:bg-[#282828] transition-all duration-300 cursor-pointer group"
         >
-            <img 
-                className="rounded w-[180px] h-[180px] object-cover" 
-                src={image} 
-                alt={name} 
-            />
-            <p className="font-bold mt-2 mb-1 text-white truncate">{name}</p>
-            <p className="text-slate-200 text-sm truncate">{desc}</p>
+            <div className="relative mb-4">
+                <img 
+                    className="rounded-md w-full aspect-square object-cover shadow-lg" 
+                    src={image} 
+                    alt={name} 
+                />
+                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-md"></div>
+            </div>
+            <p className="font-bold text-base text-white truncate mb-1">{name}</p>
+            <p className="text-slate-400 text-sm truncate line-clamp-2">{desc}</p>
         </div>
     )
 }
