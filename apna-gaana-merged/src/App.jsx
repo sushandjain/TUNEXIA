@@ -24,20 +24,14 @@ const App = () => {
         
         {/* Player App Routes */}
         <Route path="/*" element={
-          songsData.length !== 0 ? (
-            <div className='h-screen bg-black'>
-              <div className="h-[90%] flex">
-                <Sidebar />
-                <Display />
-              </div>
-              <Player />
-              <audio ref={audioRef} src={track ? track.file : ""} preload='auto'></audio>
+          <div className='h-screen bg-black'>
+            <div className="h-[90%] flex">
+              <Sidebar />
+              <Display />
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-screen bg-black">
-              <p className="text-white text-xl">Loading...</p>
-            </div>
-          )
+            <Player />
+            <audio ref={audioRef} src={track ? track.file : ""} preload='auto'></audio>
+          </div>
         } />
       </Routes>
     </div>
