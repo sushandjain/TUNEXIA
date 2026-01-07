@@ -1,12 +1,37 @@
-import { useContext } from 'react'
+import { useContext, useRef, useEffect, useState } from 'react'
 import Navbar from './Navbar'
 import { PlayerContext } from '../../context/PlayerContext'
 
 const Library = () => {
     const { songsData, likedSongs, playWithId, playStatus, pause, track } = useContext(PlayerContext);
+    const carouselRef = useRef(null);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     // Filter liked songs
     const likedSongsData = songsData.filter(song => likedSongs.includes(song._id));
+
+    // Auto-scroll carousel
+    useEffect(() => {
+        if (likedSongsData.length <= 3) return;
+        
+        const interval = setInterval(() => {
+            setActiveIndex((prev) => (prev + 1) % likedSongsData.length);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [likedSongsData.length]);
+
+    // Scroll to active item
+    useEffect(() => {
+        if (carouselRef.current && likedSongsData.length > 0) {
+            const itemWidth = 280; // width + gap
+            const scrollPosition = activeIndex * itemWidth - itemWidth;
+            carouselRef.current.scrollTo({
+                left: Math.max(0, scrollPosition),
+                behavior: 'smooth'
+            });
+        }
+    }, [activeIndex, likedSongsData.length]);
 
     return (
         <>
@@ -39,6 +64,67 @@ const Library = () => {
                             <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                         </svg>
                     </button>
+                </div>
+            )}
+
+            {/* Carousel for liked songs */}
+            {likedSongsData.length > 0 && (
+                <div className="mt-10 mb-8">
+                    <h3 className="text-2xl font-bold mb-4">Featured Liked Songs</h3>
+                    <div className="relative">
+                        <div 
+                            ref={carouselRef}
+                            className="flex overflow-x-auto gap-6 pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        >
+                            {likedSongsData.map((item, index) => (
+                                <div
+                                    key={item._id}
+                                    onClick={() => {
+                                        setActiveIndex(index);
+                                        if (track._id === item._id && playStatus) {
+                                            pause();
+                                        } else {
+                                            playWithId(item._id);
+                                        }
+                                    }}
+                                    className={`flex-shrink-0 w-[250px] p-4 rounded-lg cursor-pointer transition-all duration-300 snap-center ${
+                                        index === activeIndex 
+                                            ? 'bg-gradient-to-br from-purple-600/40 to-blue-600/40 scale-105 shadow-xl border-2 border-purple-500' 
+                                            : 'bg-[#ffffff10] hover:bg-[#ffffff20] scale-95 opacity-70'
+                                    }`}
+                                >
+                                    <img
+                                        className='w-full h-[250px] rounded-lg object-cover mb-4'
+                                        src={item.image}
+                                        alt={item.name}
+                                    />
+                                    <div>
+                                        <p className='text-white font-bold text-lg truncate'>{item.name}</p>
+                                        <p className='text-gray-300 text-sm mt-1 truncate'>{item.desc}</p>
+                                        <div className="flex items-center justify-between mt-3">
+                                            <p className='text-gray-400 text-xs'>{item.album}</p>
+                                            <p className='text-gray-400 text-xs'>{item.duration}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Navigation dots */}
+                        <div className="flex justify-center gap-2 mt-4">
+                            {likedSongsData.slice(0, Math.min(likedSongsData.length, 10)).map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setActiveIndex(index)}
+                                    className={`w-2 h-2 rounded-full transition-all ${
+                                        index === activeIndex 
+                                            ? 'bg-purple-500 w-8' 
+                                            : 'bg-gray-500 hover:bg-gray-400'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
 
