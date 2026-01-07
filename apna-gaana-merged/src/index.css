@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+::-webkit-scrollbar{
+    display: none;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom scrollbar for main display */
+.overflow-auto::-webkit-scrollbar {
+  width: 12px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+  background: #3e3e3e;
+  border-radius: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
