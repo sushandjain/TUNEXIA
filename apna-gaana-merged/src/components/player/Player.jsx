@@ -43,12 +43,12 @@ function Player() {
                     <img onClick={nextSong} className='w-4 cursor-pointer hover:scale-110' src={assets.next_icon} alt="next_icon" />
                     <img onClick={toggleLoop} className={isLooping ? "w-4 cursor-pointer" : "w-4 cursor-pointer opacity-40 hover:opacity-100"} src={assets.loop_icon} alt="loop_icon" />
                 </div>
-                <div className="flex items-center gap-2 lg:gap-5 w-full justify-center text-xs lg:text-sm">
-                    <p>{time.currentTime.minute}:{time.currentTime.second < 10 ? `0${time.currentTime.second}` : time.currentTime.second}</p>
-                    <div ref={seekBg} onClick={seekSong} className='w-full max-w-[500px] bg-gray-300 rounded-full cursor-pointer'>
-                        <hr ref={seekBar} className='h-1 border-none w-0 bg-green-800 rounded-full' />
+                <div className="flex items-center gap-2 lg:gap-5 w-full justify-center text-xs lg:text-sm mt-1">
+                    <p className="w-10 text-right">{time.currentTime.minute}:{time.currentTime.second < 10 ? `0${time.currentTime.second}` : time.currentTime.second}</p>
+                    <div ref={seekBg} onClick={seekSong} className='w-full max-w-[500px] bg-gray-600 rounded-full cursor-pointer h-1 flex items-center'>
+                        <hr ref={seekBar} className='h-1 border-none w-0 bg-green-500 rounded-full' />
                     </div>
-                    <p>{time.totalTime.minute}:{time.totalTime.second < 10 ? `0${time.totalTime.second}` : time.totalTime.second}</p>
+                    <p className="w-10 text-left">{time.totalTime.minute}:{time.totalTime.second < 10 ? `0${time.totalTime.second}` : time.totalTime.second}</p>
                 </div>
             </div>
             <div className="hidden lg:flex flex-1 justify-end items-center gap-2 opacity-75">

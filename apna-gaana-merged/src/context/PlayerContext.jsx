@@ -138,12 +138,15 @@ const PlayerContextProvider = (props) => {
         // Wait for React to update src on the audio element before playing
         setTimeout(async () => {
             try {
-                await audioRef.current.play();
-                setPlayStatus(true);
+                if (audioRef.current) {
+                    await audioRef.current.play();
+                    setPlayStatus(true);
+                }
             } catch (e) {
                 console.warn('playWithId play error:', e);
+                setPlayStatus(false);
             }
-        }, 100);
+        }, 150);
     }
 
     const previusSong = async () => {
@@ -153,12 +156,15 @@ const PlayerContextProvider = (props) => {
             setTrack(songsData[index - 1]);
             setTimeout(async () => {
                 try {
-                    await audioRef.current.play();
-                    setPlayStatus(true);
+                    if (audioRef.current) {
+                        await audioRef.current.play();
+                        setPlayStatus(true);
+                    }
                 } catch (e) {
                     console.warn('previusSong play error:', e);
+                    setPlayStatus(false);
                 }
-            }, 100);
+            }, 150);
         }
     }
 
@@ -169,12 +175,15 @@ const PlayerContextProvider = (props) => {
             setTrack(songsData[index + 1]);
             setTimeout(async () => {
                 try {
-                    await audioRef.current.play();
-                    setPlayStatus(true);
+                    if (audioRef.current) {
+                        await audioRef.current.play();
+                        setPlayStatus(true);
+                    }
                 } catch (e) {
                     console.warn('nextSong play error:', e);
+                    setPlayStatus(false);
                 }
-            }, 100);
+            }, 150);
         }
     }
 

@@ -130,6 +130,27 @@ const categories = [
     ],
     songDesc: "Lo-fi beats for deep focus.",
   },
+  {
+    album: {
+      name: "Global Popular Hits",
+      desc: "Top 10 all-time popular global hits.",
+      bgColor: "#4c1d95",
+      image: "https://picsum.photos/seed/global-popular/600/600",
+    },
+    songTitles: [
+      "Shape of the World",
+      "Blinding Sun",
+      "Dancing in the Rain",
+      "Uptown Groove",
+      "Rolling in the Deep",
+      "Someone Like Me",
+      "Happy Times",
+      "Stay With Me",
+      "Counting Stars",
+      "Perfect Night",
+    ],
+    songDesc: "Chart-topping international pop tracks.",
+  },
 ];
 
 const slugify = (text) =>
