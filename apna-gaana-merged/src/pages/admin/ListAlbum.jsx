@@ -3,7 +3,7 @@ import { url } from "../../config";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-function ListAlbum() {
+function ListAlbum({ token }) {
     const [data, setData] = useState([]);
 
     const fetchAlbums = async () => {
@@ -24,7 +24,9 @@ function ListAlbum() {
     const removeAlbum = async (id) => {
         try {
 
-            const response = await axios.delete(`${url}/api/album/remove/${id}`);
+            const response = await axios.delete(`${url}/api/album/remove/${id}`, {
+                headers: { token }
+            });
 
             if (response.data.success) {
                 toast.success(response.data.message);
@@ -33,7 +35,7 @@ function ListAlbum() {
 
         } catch (error) {
             console.log('error', error)
-            toast.error("Song Remove Error");
+            toast.error(error?.response?.data?.message || "Album Remove Error");
         }
     }
 
@@ -59,7 +61,7 @@ function ListAlbum() {
                             <img className='w-12' src={item.image} alt="" />
                             <p>{item.name}</p>
                             <p>{item.desc}</p>
-                            <input type="color" value={item.bgColour} readOnly />
+                            <input type="color" value={item.bgColor || "#121212"} readOnly />
                             <p className='font-bold cursor-pointer hover:text-red-500' onClick={() => removeAlbum(item._id)}>X</p>
                         </div>
                     )

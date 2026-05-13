@@ -1,6 +1,7 @@
 import express from 'express';
 import { addAlbum, listAlbum, removeAlbum } from '../controllers/albumController.js';
 import upload from '../middleware/multer.js';
+import authAdmin from '../middleware/auth.js';
 
 const albumRoute = express.Router();
 
@@ -18,8 +19,8 @@ albumRoute.get('/add', (req, res) => {
   });
 });
 
-albumRoute.post('/add', upload.single('image'), addAlbum);
+albumRoute.post('/add', authAdmin, upload.single('image'), addAlbum);
 albumRoute.get('/list', listAlbum);
-albumRoute.delete('/remove/:id', upload.none(), removeAlbum);  // Add upload.none() here
+albumRoute.delete('/remove/:id', authAdmin, upload.none(), removeAlbum);
 
 export default albumRoute;

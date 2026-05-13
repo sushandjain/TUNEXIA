@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { assets } from "../../assets/admin-assets/assets";
 
 
-function AddAlbum() {
+function AddAlbum({ token }) {
     const [image, setImage] = useState(false);
     const [colour, setColour] = useState("#121212");
     const [name, setName] = useState("");
@@ -21,9 +21,11 @@ function AddAlbum() {
             formData.append('name', name);
             formData.append('desc', desc);
             formData.append('image', image);
-            formData.append('bgColour', colour);
+            formData.append('bgColor', colour);
 
-            const response = await axios.post(`${url}/api/album/add`, formData);
+            const response = await axios.post(`${url}/api/album/add`, formData, {
+                headers: { token }
+            });
 
             if (response.data.success) {
                 toast.success("Album Added");
@@ -37,7 +39,7 @@ function AddAlbum() {
 
         } catch (error) {
             console.log('error', error)
-            toast.error("Album Add Error");
+            toast.error(error?.response?.data?.message || "Album Add Error");
         }
         setLoading(false);
     }

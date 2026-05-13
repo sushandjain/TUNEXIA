@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import { url } from '../../config';
 
-function ListSong() {
+function ListSong({ token }) {
     const [data, setData] = useState([]);
 
     const fetchSongs = async () => {
@@ -24,7 +24,9 @@ function ListSong() {
     const removeSong = async (id) => {
         try {
 
-            const response = await axios.delete(`${url}/api/song/remove/${id}`);
+            const response = await axios.delete(`${url}/api/song/remove/${id}`, {
+                headers: { token }
+            });
 
             if (response.data.success) {
                 toast.success(response.data.message);
@@ -33,7 +35,7 @@ function ListSong() {
 
         } catch (error) {
             console.log('error', error)
-            toast.error("Song Remove Error");
+            toast.error(error?.response?.data?.message || "Song Remove Error");
         }
     }
 

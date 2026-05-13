@@ -1,11 +1,12 @@
 import { v2 as cloudinary } from "cloudinary";
 import albumModel from "../models/albumModel.js";
+import fs from "fs";
 
 const addAlbum = async (req, res) => {
   try {
     const name = req.body.name;
     const desc = req.body.desc;
-    const bgColor = req.body.bgColor;
+    const bgColor = req.body.bgColor || req.body.bgColour;
     const imageFile = req.file;
 
     if (!imageFile) {
@@ -15,10 +16,20 @@ const addAlbum = async (req, res) => {
       });
     }
 
+    if (!name || !desc || !bgColor) {
+      return res.status(400).json({
+        success: false,
+        message: "name, desc and bgColor are required"
+      });
+    }
+
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
       folder: "albums"
     });
+
+    // Delete local file after upload
+    fs.unlinkSync(imageFile.path);
 
     const albumData = {
       name,
@@ -37,6 +48,12 @@ const addAlbum = async (req, res) => {
     });
 
   } catch (error) {
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {}
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message

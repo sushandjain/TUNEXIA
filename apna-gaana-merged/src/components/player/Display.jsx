@@ -16,21 +16,18 @@ const Display = () => {
 
     return (
         <div className='w-[100%] m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-auto lg:w-[75%] lg:ml-0'>
-            {albumsData.length > 0 ? (
-                <>
-                    {isAlbum ? (
-                        <div
-                            className='h-36 rounded'
-                            style={{ background: `linear-gradient(${bgColor}, #121212)` }}
-                        ></div>
-                    ) : null}
-                    <Routes>
-                        <Route path='/' element={<DisplayHome />} />
-                        <Route path='/album/:id' element={<DisplayAlbum />} />
-                        <Route path='/library' element={<Library />} />
-                    </Routes>
-                </>
+            {/* Always render routes — don't gate on albumsData */}
+            {isAlbum && albumsData.length > 0 ? (
+                <div
+                    className='h-36 rounded'
+                    style={{ background: `linear-gradient(${bgColor}, #121212)` }}
+                ></div>
             ) : null}
+            <Routes>
+                <Route path='/' element={<DisplayHome />} />
+                <Route path='/album/:id' element={<DisplayAlbum />} />
+                <Route path='/library' element={<Library />} />
+            </Routes>
         </div>
     )
 }

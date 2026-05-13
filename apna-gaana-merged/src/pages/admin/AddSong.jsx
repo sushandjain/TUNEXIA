@@ -4,7 +4,7 @@ import axios from 'axios';
 import { url } from "../../config";
 import { toast } from "react-toastify";
 
-function AddSong() {
+function AddSong({ token }) {
 
     const [image, setImage] = useState(false);
     const [song, setSong] = useState(false);
@@ -26,7 +26,9 @@ function AddSong() {
             formData.append('audio', song);
             formData.append('album', album);
 
-            const response = await axios.post(`${url}/api/song/add`, formData);
+            const response = await axios.post(`${url}/api/song/add`, formData, {
+                headers: { token }
+            });
 
             if (response.data.success) {
                 toast.success("Song Added");
@@ -41,7 +43,7 @@ function AddSong() {
 
         } catch (error) {
             console.log('error', error)
-            toast.error("Song Add Error");
+            toast.error(error?.response?.data?.message || "Song Add Error");
         }
         setLoading(false);
     }

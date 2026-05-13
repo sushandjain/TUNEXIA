@@ -70,15 +70,18 @@ const PlayerContextProvider = (props) => {
         setTimeout(() => {
             if (audioRef.current) {
                 audioRef.current.ontimeupdate = () => {
-                    seekBar.current.style.width = (Math.floor(audioRef.current.currentTime / audioRef.current.duration * 100)) + "%";
+                    // Guard: seekBar may not be mounted yet
+                    if (seekBar.current && audioRef.current.duration) {
+                        seekBar.current.style.width = (Math.floor(audioRef.current.currentTime / audioRef.current.duration * 100)) + "%";
+                    }
                     setTime({
                         currentTime: {
                             second: Math.floor(audioRef.current.currentTime % 60),
                             minute: Math.floor(audioRef.current.currentTime / 60)
                         },
                         totalTime: {
-                            second: Math.floor(audioRef.current.duration % 60),
-                            minute: Math.floor(audioRef.current.duration / 60)
+                            second: Math.floor((audioRef.current.duration || 0) % 60),
+                            minute: Math.floor((audioRef.current.duration || 0) / 60)
                         }
                     })
                 }
@@ -129,33 +132,50 @@ const PlayerContextProvider = (props) => {
     }, [isShuffle, originalSongsData]);
 
     const playWithId = async (id) => {
-        await songsData.map((item) => {
-            if (id === item._id) {
-                setTrack(item);
+        const song = songsData.find((item) => item._id === id);
+        if (!song) return;
+        setTrack(song);
+        // Wait for React to update src on the audio element before playing
+        setTimeout(async () => {
+            try {
+                await audioRef.current.play();
+                setPlayStatus(true);
+            } catch (e) {
+                console.warn('playWithId play error:', e);
             }
-        })
-        await audioRef.current.play();
-        setPlayStatus(true);
+        }, 100);
     }
 
     const previusSong = async () => {
-        songsData.map(async (item, index) => {
-            if (track._id === item._id && index > 0) {
-                await setTrack(songsData[index - 1]);
-                await audioRef.current.play();
-                setPlayStatus(true);
-            }
-        })
+        if (!track) return;
+        const index = songsData.findIndex((item) => item._id === track._id);
+        if (index > 0) {
+            setTrack(songsData[index - 1]);
+            setTimeout(async () => {
+                try {
+                    await audioRef.current.play();
+                    setPlayStatus(true);
+                } catch (e) {
+                    console.warn('previusSong play error:', e);
+                }
+            }, 100);
+        }
     }
 
     const nextSong = async () => {
-        songsData.map(async (item, index) => {
-            if (track._id === item._id && index < songsData.length - 1) {
-                await setTrack(songsData[index + 1]);
-                await audioRef.current.play();
-                setPlayStatus(true);
-            }
-        })
+        if (!track) return;
+        const index = songsData.findIndex((item) => item._id === track._id);
+        if (index < songsData.length - 1) {
+            setTrack(songsData[index + 1]);
+            setTimeout(async () => {
+                try {
+                    await audioRef.current.play();
+                    setPlayStatus(true);
+                } catch (e) {
+                    console.warn('nextSong play error:', e);
+                }
+            }, 100);
+        }
     }
 
     const seekSong = async (e) => {

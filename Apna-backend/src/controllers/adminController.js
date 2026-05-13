@@ -4,35 +4,37 @@ import jwt from "jsonwebtoken";
 
 const loginAdmin = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        console.log("Login attempt:", username);
+        const { username, email, password } = req.body;
+        const loginId = (username || email || "").trim();
 
-        if (!username || !password) {
-            return res.json({ success: false, message: "Username and password are required" });
+        if (!loginId || !password) {
+            return res.status(400).json({ success: false, message: "Username/email and password are required" });
         }
 
-        const admin = await adminModel.findOne({ username });
-        console.log("Admin found:", admin ? "Yes" : "No");
+        const admin = await adminModel.findOne({
+            $or: [
+                { username: loginId },
+                { email: loginId.toLowerCase() }
+            ]
+        });
 
         if (!admin) {
-            return res.json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-        console.log("Comparing password...");
         const isMatch = await bcrypt.compare(password, admin.password);
-        console.log("Password match:", isMatch);
 
         if (!isMatch) {
-            return res.json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || "default_secret", { expiresIn: "1h" });
+        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || "default_secret", { expiresIn: "12h" });
 
-        res.json({ success: true, token });
+        res.json({ success: true, token, admin: { username: admin.username } });
 
     } catch (error) {
-        console.error("Login error:", error);
-        res.json({ success: false, message: error.message });
+        console.error("Login error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

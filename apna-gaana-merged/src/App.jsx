@@ -24,7 +24,7 @@ const App = () => {
         
         {/* Player App Routes */}
         <Route path="/*" element={
-          <div className='h-screen bg-black'>
+          <div className='h-[100dvh] bg-black'>
             <div className="h-[90%] flex">
               <Sidebar />
               <Display />
