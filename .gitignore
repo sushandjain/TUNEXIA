@@ -62,5 +62,4 @@ Thumbs.db
 
 # Reports & Bundle Stats
 lighthouse-*.json
-*.html
-!**/index.html
+dist/
