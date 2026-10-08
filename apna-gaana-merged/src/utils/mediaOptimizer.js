@@ -50,6 +50,21 @@ export function getOptimizedUrl(url, options = {}) {
         return url.replace(/\/\d+\/\d+$/, `/${targetWidth}/${targetHeight}`);
     }
 
+    // 3. Unsplash Photos optimization
+    if (url.includes('images.unsplash.com')) {
+        try {
+            const u = new URL(url);
+            const targetWidth = width ? Math.round(width) : 320;
+            u.searchParams.set('w', String(targetWidth));
+            u.searchParams.set('auto', 'format');
+            u.searchParams.set('fit', 'crop');
+            u.searchParams.set('q', '75');
+            return u.toString();
+        } catch {
+            return url;
+        }
+    }
+
     return url;
 }
 

@@ -5,8 +5,8 @@ import './index.css';
 import App from './App.jsx';
 import PlayerContextProvider from './context/PlayerContext.jsx';
 
-// Register Service Worker for PWA support
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+// Register Service Worker for PWA support & offline caching in production
+if ('serviceWorker' in navigator && (import.meta.env.PROD || window.location.hostname !== 'localhost')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch((err) => {
       console.warn('Service worker registration failed:', err);

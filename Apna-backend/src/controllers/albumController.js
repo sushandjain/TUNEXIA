@@ -6,11 +6,11 @@ import fs from "fs";
 let albumsCache = {
   data: null,
   timestamp: 0,
-  ttl: 60 * 1000 // 60 seconds
+  ttl: 300 * 1000 // 5 minutes
 };
 
 export const invalidateAlbumsCache = () => {
-  albumsCache = { data: null, timestamp: 0, ttl: 60 * 1000 };
+  albumsCache = { data: null, timestamp: 0, ttl: 300 * 1000 };
 };
 
 const addAlbum = async (req, res) => {
@@ -80,6 +80,7 @@ const listAlbum = async (req, res) => {
   try {
     const now = Date.now();
     if (albumsCache.data && (now - albumsCache.timestamp < albumsCache.ttl)) {
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       return res.json({
         success: true,
         cached: true,
@@ -93,6 +94,7 @@ const listAlbum = async (req, res) => {
     albumsCache.data = albums;
     albumsCache.timestamp = now;
 
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     res.json({
       success: true,
       count: albums.length,

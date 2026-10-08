@@ -10,12 +10,40 @@ const PlayerContextProvider = (props) => {
     const seekBar = useRef();
     const seekBg = useRef();
 
-    const [songsData, setSongsData] = useState([]);
-    const [albumsData, setAlbumsData] = useState([]);
-    const [track, setTrack] = useState(null);
-    const [playStatus, setPlayStatus] = useState(false);
-    const [isLooping, setIsLooping] = useState(false);
-    const [originalSongsData, setOriginalSongsData] = useState([]);
+    const [songsData, setSongsData] = useState(() => {
+        try {
+            const cached = localStorage.getItem('tunexia_songs_cache');
+            return cached ? JSON.parse(cached) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [originalSongsData, setOriginalSongsData] = useState(() => {
+        try {
+            const cached = localStorage.getItem('tunexia_songs_cache');
+            return cached ? JSON.parse(cached) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [albumsData, setAlbumsData] = useState(() => {
+        try {
+            const cached = localStorage.getItem('tunexia_albums_cache');
+            return cached ? JSON.parse(cached) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [track, setTrack] = useState(() => {
+        try {
+            const cached = localStorage.getItem('tunexia_songs_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : null;
+            }
+        } catch {}
+        return null;
+    });
     const [isShuffle, setIsShuffle] = useState(false);
     const [volume, setVolume] = useState(0.7);
     const [isMuted, setIsMuted] = useState(false);
@@ -295,56 +323,67 @@ const PlayerContextProvider = (props) => {
         audioRef.current.currentTime = ratio * audioRef.current.duration;
     };
 
-    // Stale-While-Revalidate data fetching
-    const getSongsData = async () => {
+    // Stale-While-Revalidate data fetching with parallel bootstrap
+    const fetchCatalogData = async () => {
         try {
-            const cached = sessionStorage.getItem('tunexia_songs_cache');
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setSongsData(parsed);
-                    setOriginalSongsData(parsed);
-                    setTrack(parsed[0]);
-                }
+            const [songsRes, albumsRes] = await Promise.allSettled([
+                axios.get(`${url}/api/song/list`),
+                axios.get(`${url}/api/album/list`)
+            ]);
+
+            if (songsRes.status === 'fulfilled' && songsRes.value.data?.success && songsRes.value.data.songs) {
+                const freshSongs = songsRes.value.data.songs;
+                setSongsData(freshSongs);
+                setOriginalSongsData(freshSongs);
+                try {
+                    localStorage.setItem('tunexia_songs_cache', JSON.stringify(freshSongs));
+                } catch (e) {}
+                setTrack(prev => prev || freshSongs[0] || null);
             }
 
-            const response = await axios.get(`${url}/api/song/list`);
-            if (response.data.success && response.data.songs) {
-                setSongsData(response.data.songs);
-                setOriginalSongsData(response.data.songs);
-                sessionStorage.setItem('tunexia_songs_cache', JSON.stringify(response.data.songs));
-                if (!track) {
-                    setTrack(response.data.songs[0]);
-                }
+            if (albumsRes.status === 'fulfilled' && albumsRes.value.data?.success && albumsRes.value.data.albums) {
+                const freshAlbums = albumsRes.value.data.albums;
+                setAlbumsData(freshAlbums);
+                try {
+                    localStorage.setItem('tunexia_albums_cache', JSON.stringify(freshAlbums));
+                } catch (e) {}
             }
         } catch (error) {
-            console.error('getSongsData error:', error);
+            console.error('fetchCatalogData error:', error);
+        }
+    };
+
+    const getSongsData = async () => {
+        try {
+            const response = await axios.get(`${url}/api/song/list`);
+            if (response.data?.success && response.data.songs) {
+                setSongsData(response.data.songs);
+                setOriginalSongsData(response.data.songs);
+                try {
+                    localStorage.setItem('tunexia_songs_cache', JSON.stringify(response.data.songs));
+                } catch (e) {}
+            }
+        } catch (e) {
+            console.error('getSongsData error:', e);
         }
     };
 
     const getAlbumsData = async () => {
         try {
-            const cached = sessionStorage.getItem('tunexia_albums_cache');
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setAlbumsData(parsed);
-                }
-            }
-
             const response = await axios.get(`${url}/api/album/list`);
-            if (response.data.success && response.data.albums) {
+            if (response.data?.success && response.data.albums) {
                 setAlbumsData(response.data.albums);
-                sessionStorage.setItem('tunexia_albums_cache', JSON.stringify(response.data.albums));
+                try {
+                    localStorage.setItem('tunexia_albums_cache', JSON.stringify(response.data.albums));
+                } catch (e) {}
             }
-        } catch (error) {
-            console.error('getAlbumsData error:', error);
+        } catch (e) {
+            console.error('getAlbumsData error:', e);
         }
     };
 
     useEffect(() => {
-        getAlbumsData();
-        getSongsData();
+        fetchCatalogData();
     }, []);
 
     // Media Session API integration for lock-screen & mobile system controls

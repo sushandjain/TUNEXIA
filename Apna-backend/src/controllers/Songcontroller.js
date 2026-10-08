@@ -7,11 +7,11 @@ import fs from "fs";
 let songsCache = {
   data: null,
   timestamp: 0,
-  ttl: 60 * 1000 // 60 seconds
+  ttl: 300 * 1000 // 5 minutes
 };
 
 export const invalidateSongsCache = () => {
-  songsCache = { data: null, timestamp: 0, ttl: 60 * 1000 };
+  songsCache = { data: null, timestamp: 0, ttl: 300 * 1000 };
 };
 
 const addSong = async (req, res) => {
@@ -163,6 +163,7 @@ const listSong = async (req, res) => {
     // Fast path: In-memory cache for full unpaginated query with no filters
     const now = Date.now();
     if (!page && !limit && !album && !source && !search && !status && songsCache.data && (now - songsCache.timestamp < songsCache.ttl)) {
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       return res.json({ 
         success: true, 
         cached: true,
@@ -190,7 +191,6 @@ const listSong = async (req, res) => {
       query.$or = [{ name: regex }, { artist: regex }, { album: regex }, { desc: regex }];
     }
 
-    const totalCount = await songModel.countDocuments(query);
     let queryBuilder = songModel.find(query).select('-__v').sort({ createdAt: -1 }).lean();
 
     if (page && limit) {
@@ -199,11 +199,14 @@ const listSong = async (req, res) => {
     }
 
     const songs = await queryBuilder;
+    const totalCount = (page && limit) ? await songModel.countDocuments(query) : songs.length;
 
-    // Cache when it's the full catalog without filters
     if (!page && !limit && !album && !source && !search && !status) {
       songsCache.data = songs;
       songsCache.timestamp = now;
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    } else if (status === 'all' || status === 'draft') {
+      res.set('Cache-Control', 'no-store');
     }
 
     res.json({ 

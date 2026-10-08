@@ -34,7 +34,26 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Network-first for API queries with cache fallback
+    // Stale-While-Revalidate for song & album lists (instant 0ms response + background refresh)
+    if (url.pathname.startsWith('/api/song/list') || url.pathname.startsWith('/api/album/list')) {
+        event.respondWith(
+            caches.open(CACHE_NAME).then((cache) => {
+                return cache.match(request).then((cachedResponse) => {
+                    const networkFetch = fetch(request).then((networkResponse) => {
+                        if (networkResponse && networkResponse.ok) {
+                            cache.put(request, networkResponse.clone());
+                        }
+                        return networkResponse;
+                    }).catch(() => cachedResponse);
+
+                    return cachedResponse || networkFetch;
+                });
+            })
+        );
+        return;
+    }
+
+    // Network-first for other API queries with cache fallback
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(
             fetch(request)

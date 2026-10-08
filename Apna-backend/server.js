@@ -135,9 +135,19 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// If in serverless (e.g. Vercel), connect to DB on cold start
+if (process.env.VERCEL) {
+  connectdb().catch((err) => console.error('Serverless DB connection error:', err));
+  if (process.env.CLOUDINARY_NAME && process.env.CLOUDINARY_API_KEY) {
+    connectCloudinary();
+  }
+} else {
+  startServer();
+}
 
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err.message);
-  process.exit(1);
 });
+
+export default app;
+
