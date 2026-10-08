@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: tunexia-backend
+    env: node
+    rootDir: Apna-backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3004
+      - key: NODE_ENV
+        value: production
