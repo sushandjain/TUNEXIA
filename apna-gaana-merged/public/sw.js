@@ -1,7 +1,5 @@
-const CACHE_NAME = 'tunexia-v1';
+const CACHE_NAME = 'tunexia-v2';
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
     '/manifest.webmanifest'
 ];
 
@@ -17,7 +15,10 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((keys) => {
             return Promise.all(
                 keys.map((key) => {
-                    if (key !== CACHE_NAME) return caches.delete(key);
+                    if (key !== CACHE_NAME) {
+                        console.log('Purging old cache:', key);
+                        return caches.delete(key);
+                    }
                 })
             );
         })
@@ -34,7 +35,23 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Stale-While-Revalidate for song & album lists (instant 0ms response + background refresh)
+    // 1. Navigation / HTML requests: Network-First so user always gets the latest JS bundles
+    if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+        event.respondWith(
+            fetch(request)
+                .then((networkResponse) => {
+                    if (networkResponse && networkResponse.ok) {
+                        const clone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    }
+                    return networkResponse;
+                })
+                .catch(() => caches.match(request).then(cached => cached || caches.match('/index.html')))
+        );
+        return;
+    }
+
+    // 2. Stale-While-Revalidate for song & album lists (instant 0ms response + background refresh)
     if (url.pathname.startsWith('/api/song/list') || url.pathname.startsWith('/api/album/list')) {
         event.respondWith(
             caches.open(CACHE_NAME).then((cache) => {
@@ -53,7 +70,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Network-first for other API queries with cache fallback
+    // 3. Network-first for other API queries with cache fallback
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(
             fetch(request)
@@ -69,7 +86,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Cache-first for static assets
+    // 4. Cache-first for hashed static assets (/assets/*)
     event.respondWith(
         caches.match(request).then((cached) => {
             if (cached) return cached;
