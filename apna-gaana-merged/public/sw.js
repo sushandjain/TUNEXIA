@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tunexia-v2';
+const CACHE_NAME = 'tunexia-v3';
 const STATIC_ASSETS = [
     '/manifest.webmanifest'
 ];
