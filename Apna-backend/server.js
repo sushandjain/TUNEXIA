@@ -11,6 +11,7 @@ import debugRoute from './src/routes/debugRoute.js';
 import externalMusicRoute from './src/routes/externalMusicRoute.js';
 import syncRoute from './src/routes/syncRoute.js';
 import { initScheduler } from './src/services/syncService.js';
+import adminImportRouter, { startSync } from './src/routes/adminImport.js';
 
 const app = express();
 const port = process.env.PORT || 3004;
@@ -69,6 +70,7 @@ app.get('/', (req, res) => {
 app.use('/api/song', songRoute);
 app.use('/api/album', albumRoute);
 app.use('/api/admin', adminRoute);
+app.use('/api/admin/import', adminImportRouter);
 app.use('/api/external-music', externalMusicRoute);
 app.use('/api/sync', syncRoute);
 app.use('/api/debug', debugRoute);
@@ -102,6 +104,9 @@ const startServer = async () => {
 
     // Initialize Auto-Sync Scheduler
     await initScheduler();
+
+    // Initialize Category AutoSync (tunexia-import)
+    startSync();
 
     const hasCloudinaryConfig =
       process.env.CLOUDINARY_NAME &&

@@ -174,8 +174,16 @@ const listSong = async (req, res) => {
     const query = {};
     if (album) query.album = album;
     if (source && source !== 'all') query.source = source;
-    if (status === 'published') query.isPublished = true;
-    if (status === 'draft') query.isPublished = false;
+
+    // Filter drafts: public requests (default) exclude drafts ({ $ne: false })
+    if (status === 'all') {
+      // Admin requested all songs including drafts
+    } else if (status === 'draft') {
+      query.isPublished = false;
+    } else {
+      // Default: Only published tracks visible in public player, albums, search
+      query.isPublished = { $ne: false };
+    }
 
     if (search) {
       const regex = new RegExp(search, 'i');

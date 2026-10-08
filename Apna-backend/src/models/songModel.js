@@ -49,6 +49,10 @@ const songSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    category: {
+        type: String,
+        default: ""
+    },
     importedAt: {
         type: Date,
         default: null
@@ -64,9 +68,16 @@ const songSchema = new mongoose.Schema({
 // Indexes for fast lookup, sorting, and deduplication
 songSchema.index({ album: 1 });
 songSchema.index({ name: 1 });
+songSchema.index({ category: 1 });
 songSchema.index({ createdAt: -1 });
 songSchema.index({ isPublished: 1 });
-songSchema.index({ source: 1, externalId: 1 }, { sparse: true });
+songSchema.index(
+    { source: 1, externalId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { externalId: { $type: "string" } }
+    }
+);
 
 const songModel = mongoose.models.song || mongoose.model("song", songSchema);
 

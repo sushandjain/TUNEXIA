@@ -15,6 +15,16 @@ function Player() {
 
     const isLiked = likedSongs.includes(track._id);
 
+    const getProviderAttribution = (source) => {
+        switch (source) {
+            case 'deezer': return 'Music via Deezer';
+            case 'itunes': return 'Music via Apple';
+            case 'jamendo': return 'Music via Jamendo';
+            case 'audius': return 'Music via Audius';
+            default: return null;
+        }
+    };
+
     return (
         <>
             {/* FULL-SCREEN MOBILE NOW PLAYING SHEET */}
@@ -79,6 +89,11 @@ function Player() {
                                     )}
                                 </div>
                                 <p className="text-sm text-neutral-400 truncate">{track.desc || track.album}</p>
+                                {getProviderAttribution(track.source) && (
+                                    <p className="text-[11px] text-neutral-500 font-medium mt-1 tracking-wide">
+                                        {getProviderAttribution(track.source)}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -199,7 +214,10 @@ function Player() {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[11px] sm:text-xs text-neutral-400 truncate">{track.desc || track.album}</p>
+                            <p className="text-[11px] sm:text-xs text-neutral-400 truncate">
+                                {track.desc || track.album}
+                                {getProviderAttribution(track.source) ? ` • ${getProviderAttribution(track.source)}` : ''}
+                            </p>
                         </div>
                         <button 
                             type="button"

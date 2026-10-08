@@ -7,6 +7,7 @@ const Dashboard = lazy(() => import('./Dashboard'));
 const AddSong = lazy(() => import('./AddSong'));
 const ListSong = lazy(() => import('./ListSong'));
 const DiscoverImport = lazy(() => import('./DiscoverImport'));
+const AdminImport = lazy(() => import('./AdminImport'));
 const SyncSettings = lazy(() => import('./SyncSettings'));
 const AddAlbum = lazy(() => import('./AddAlbum'));
 const ListAlbum = lazy(() => import('./ListAlbum'));
@@ -61,7 +62,9 @@ const AdminApp = () => {
                                     <Route index element={<Dashboard token={token} />} />
                                     <Route path="list-song" element={<ListSong token={token} />} />
                                     <Route path="add-song" element={<AddSong token={token} />} />
-                                    <Route path="import" element={<DiscoverImport token={token} />} />
+                                    <Route path="import-songs" element={<AdminImport token={token} />} />
+                                    <Route path="import" element={<AdminImport token={token} />} />
+                                    <Route path="discover" element={<DiscoverImport token={token} />} />
                                     <Route path="sync-settings" element={<SyncSettings token={token} />} />
                                     <Route path="list-album" element={<ListAlbum token={token} />} />
                                     <Route path="add-album" element={<AddAlbum token={token} />} />

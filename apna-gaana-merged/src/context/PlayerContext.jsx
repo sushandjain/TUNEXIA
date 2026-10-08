@@ -1,6 +1,7 @@
 import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import axios from 'axios';
 import { url } from '../config';
+import { toast } from 'react-toastify';
 
 export const PlayerContext = createContext();
 
@@ -104,11 +105,24 @@ const PlayerContextProvider = (props) => {
             }
         };
 
+        const onError = (e) => {
+            console.warn('Audio playback error on track:', track?.name, e);
+            setIsLoadingAudio(false);
+            setPlayStatus(false);
+            if (track) {
+                toast.info(`Playback error on "${track.name}". Skipping to next track...`);
+                setTimeout(() => {
+                    nextSong();
+                }, 1000);
+            }
+        };
+
         audio.addEventListener('timeupdate', onTimeUpdate);
         audio.addEventListener('waiting', onWaiting);
         audio.addEventListener('playing', onPlaying);
         audio.addEventListener('pause', onPause);
         audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
 
         return () => {
             audio.removeEventListener('timeupdate', onTimeUpdate);
@@ -116,6 +130,7 @@ const PlayerContextProvider = (props) => {
             audio.removeEventListener('playing', onPlaying);
             audio.removeEventListener('pause', onPause);
             audio.removeEventListener('ended', onEnded);
+            audio.removeEventListener('error', onError);
         };
     }, [isLooping, songsData, track]);
 
