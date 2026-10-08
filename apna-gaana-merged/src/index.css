@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-::-webkit-scrollbar{
-    display: none;
+html, body {
+  overflow-x: hidden;
+  background-color: #000;
+  color: #fff;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -14,20 +18,30 @@
   scrollbar-width: none;
 }
 
-/* Custom scrollbar for main display */
-.overflow-auto::-webkit-scrollbar {
-  width: 12px;
+/* Custom scrollbar for desktop */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #121212;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 }
 
-.overflow-auto::-webkit-scrollbar-track {
-  background: #121212;
-}
-
-.overflow-auto::-webkit-scrollbar-thumb {
-  background: #3e3e3e;
-  border-radius: 6px;
-}
-
-.overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #555;
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

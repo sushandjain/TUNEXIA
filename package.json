@@ -1,0 +1,12 @@
+{
+  "name": "tunexia-monorepo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Tunexia Full-Stack Music Streaming App",
+  "scripts": {
+    "dev": "npm --prefix apna-gaana-merged run dev",
+    "server": "npm --prefix Apna-backend start",
+    "build": "npm --prefix apna-gaana-merged run build",
+    "preview": "npm --prefix apna-gaana-merged run preview"
+  }
+}

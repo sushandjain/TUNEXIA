@@ -1,12 +1,31 @@
 import mongoose from "mongoose";
 
-const albumSchema =new mongoose.Schema({
-    name:{type:String,require:true},
-    desc:{type:String,require:true},
-    bgColor:{type:String,require:true},
-    image:{type:String,require:true},
-})
+const albumSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    desc: {
+        type: String,
+        required: true
+    },
+    bgColor: {
+        type: String,
+        required: true
+    },
+    image: {
+        type: String,
+        required: true
+    }
+}, {
+    timestamps: true
+});
 
-const albumModel=mongoose.models.album || mongoose.model("album",albumSchema)
+// Indexes for fast lookup and sorting
+albumSchema.index({ name: 1 });
+albumSchema.index({ createdAt: -1 });
+
+const albumModel = mongoose.models.album || mongoose.model("album", albumSchema);
 
 export default albumModel;

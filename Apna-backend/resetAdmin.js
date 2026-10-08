@@ -15,9 +15,9 @@ const resetAdmin = async () => {
         await mongoose.connect(MONGODB_URI);
         console.log("✅ MongoDB connected successfully");
         
-        // Delete existing admin
-        await adminModel.deleteOne({ username: "sushan" });
-        console.log("Deleted existing admin");
+        // Delete existing admins
+        await adminModel.deleteMany({ username: { $in: ["sushan", "admin"] } });
+        console.log("Deleted old admin records");
         
         // Create new admin with password: q1w2##22
         const hashedPassword = await bcrypt.hash("q1w2##22", 10);

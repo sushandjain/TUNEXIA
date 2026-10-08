@@ -1,11 +1,23 @@
 import express from 'express';
-import { addSong, listSong, removeSong } from '../controllers/Songcontroller.js';
+import { 
+  addSong, 
+  editSong,
+  listSong, 
+  removeSong, 
+  bulkDeleteSongs, 
+  bulkUpdateStatus, 
+  getDashboardStats 
+} from '../controllers/Songcontroller.js';
 import upload from '../middleware/multer.js';
 import authAdmin from '../middleware/auth.js';
 import fs from 'fs';
 
 const songRoute = express.Router();
 
+// Dashboard analytics & KPIs
+songRoute.get('/stats', authAdmin, getDashboardStats);
+
+// Manual Song Addition
 songRoute.post('/add', 
   authAdmin,
   (req, res, next) => {
@@ -14,48 +26,44 @@ songRoute.post('/add',
       {name:'audio', maxCount:1}
     ])(req, res, (err) => {
       if (err) {
-        console.error('Multer error:', err);
         return res.status(400).json({
           success: false,
           message: 'File upload error: ' + err.message
         });
       }
-      
-      console.log('Files received by multer:', req.files);
-      console.log('Body received:', req.body);
-      
       next();
     });
   },
   addSong
 );
 
+// Edit Song Metadata
+songRoute.put('/edit/:id', authAdmin, editSong);
+
+// List Songs (supports search, filter, pagination)
 songRoute.get('/list', listSong);
 
-// Accept multipart form-data (may include files) and clean up any uploaded files
+// Single Song Removal
 songRoute.delete('/remove/:id',
   authAdmin,
   (req, res, next) => { 
     upload.any()(req, res, (err) => {
       if (err) {
-        console.error('Multer error on remove:', err);
         return res.status(400).json({ success: false, message: 'Invalid form data: ' + err.message });
       }
-
-      console.log('Body received on remove:', req.body);
-      console.log('Files received on remove:', req.files);
-
-      // If client accidentally uploaded files, delete them to avoid storage bloat
       if (req.files && req.files.length) {
         req.files.forEach((f) => {
-          try { fs.unlinkSync(f.path); } catch (e) { /* ignore */ }
+          try { fs.unlinkSync(f.path); } catch (e) {}
         });
       }
-
       next(); 
     });
   },
   removeSong
 );
+
+// Bulk Operations
+songRoute.post('/bulk-delete', authAdmin, bulkDeleteSongs);
+songRoute.post('/bulk-status', authAdmin, bulkUpdateStatus);
 
 export default songRoute;

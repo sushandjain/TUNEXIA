@@ -1,178 +1,118 @@
-import { useContext, useRef, useEffect, useState } from 'react'
-import Navbar from './Navbar'
-import { PlayerContext } from '../../context/PlayerContext'
+import React, { useContext, useMemo } from 'react';
+import Navbar from './Navbar';
+import { PlayerContext } from '../../context/PlayerContext';
+import OptimizedImage from '../common/OptimizedImage';
 
 const Library = () => {
     const { songsData, likedSongs, playWithId, playStatus, pause, track } = useContext(PlayerContext);
-    const carouselRef = useRef(null);
-    const [activeIndex, setActiveIndex] = useState(0);
 
-    // Filter liked songs
-    const likedSongsData = songsData.filter(song => likedSongs.includes(song._id));
-
-    // Auto-scroll carousel
-    useEffect(() => {
-        if (likedSongsData.length <= 3) return;
-        
-        const interval = setInterval(() => {
-            setActiveIndex((prev) => (prev + 1) % likedSongsData.length);
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [likedSongsData.length]);
-
-    // Scroll to active item
-    useEffect(() => {
-        if (carouselRef.current && likedSongsData.length > 0) {
-            const itemWidth = 280; // width + gap
-            const scrollPosition = activeIndex * itemWidth - itemWidth;
-            carouselRef.current.scrollTo({
-                left: Math.max(0, scrollPosition),
-                behavior: 'smooth'
-            });
-        }
-    }, [activeIndex, likedSongsData.length]);
+    // Filter liked songs with useMemo
+    const likedSongsData = useMemo(() => {
+        return songsData.filter(song => likedSongs.includes(song._id));
+    }, [songsData, likedSongs]);
 
     return (
-        <>
+        <div className="pb-28">
             <Navbar />
-            <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
-                <div className="w-48 h-48 bg-gradient-to-br from-purple-700 to-blue-300 rounded shadow-2xl flex items-center justify-center">
-                    <svg className="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+
+            {/* Library Header */}
+            <div className="mt-6 sm:mt-10 flex gap-6 sm:gap-8 flex-col sm:flex-row sm:items-end">
+                <div className="w-40 h-40 sm:w-52 sm:h-52 bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 rounded-lg shadow-2xl flex items-center justify-center flex-shrink-0 self-center sm:self-auto">
+                    <svg className="w-20 h-20 text-white fill-current drop-shadow-md" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </div>
-                <div className="flex flex-col gap-3">
-                    <p className='text-sm font-semibold'>Playlist</p>
-                    <h2 className='text-5xl font-bold mb-2 md:text-7xl'>Liked Songs</h2>
-                    <p className='text-slate-300'>Your favorite tracks</p>
-                    <p className='flex items-center gap-2 mt-2 text-sm'>
-                        <span className="font-bold">You</span>
-                        <span>• {likedSongsData.length} songs</span>
+                <div className="flex flex-col gap-2 text-center sm:text-left">
+                    <p className='text-xs sm:text-sm font-semibold uppercase tracking-wider text-neutral-400'>Playlist</p>
+                    <h1 className='text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white'>Liked Songs</h1>
+                    <p className='text-neutral-300 text-sm sm:text-base'>Your personal favorite collection</p>
+                    <p className='text-xs sm:text-sm text-neutral-400 mt-1'>
+                        <span className="font-semibold text-white">You</span>
+                        <span> • {likedSongsData.length} saved {likedSongsData.length === 1 ? 'song' : 'songs'}</span>
                     </p>
                 </div>
             </div>
 
-            {/* Play button */}
+            {/* Play All Button */}
             {likedSongsData.length > 0 && (
-                <div className="mt-6 flex items-center gap-5">
+                <div className="mt-6 flex items-center gap-4">
                     <button
                         onClick={() => playWithId(likedSongsData[0]._id)}
-                        className='bg-green-500 hover:bg-green-400 hover:scale-105 transition-all text-black rounded-full p-4'
+                        className='w-14 h-14 bg-green-500 hover:bg-green-400 hover:scale-105 active:scale-95 transition-all text-black rounded-full flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-green-500/50 cursor-pointer'
+                        aria-label="Play all liked songs"
                     >
-                        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                        <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
+                            <polygon points="5 3 19 12 5 21 5 3" />
                         </svg>
                     </button>
                 </div>
             )}
 
-            {/* Carousel for liked songs */}
-            {likedSongsData.length > 0 && (
-                <div className="mt-10 mb-8">
-                    <h3 className="text-2xl font-bold mb-4">Featured Liked Songs</h3>
-                    <div className="relative">
-                        <div 
-                            ref={carouselRef}
-                            className="flex overflow-x-auto gap-6 pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                        >
-                            {likedSongsData.map((item, index) => (
+            {/* Songs List */}
+            <div className="mt-8">
+                {likedSongsData.length > 0 ? (
+                    <div className="space-y-1">
+                        {likedSongsData.map((item, index) => {
+                            const isCurrentTrack = track && track._id === item._id;
+                            return (
                                 <div
                                     key={item._id}
                                     onClick={() => {
-                                        setActiveIndex(index);
-                                        if (track._id === item._id && playStatus) {
+                                        if (isCurrentTrack && playStatus) {
                                             pause();
                                         } else {
                                             playWithId(item._id);
                                         }
                                     }}
-                                    className={`flex-shrink-0 w-[250px] p-4 rounded-lg cursor-pointer transition-all duration-300 snap-center ${
-                                        index === activeIndex 
-                                            ? 'bg-gradient-to-br from-purple-600/40 to-blue-600/40 scale-105 shadow-xl border-2 border-purple-500' 
-                                            : 'bg-[#ffffff10] hover:bg-[#ffffff20] scale-95 opacity-70'
+                                    className={`grid grid-cols-[36px_1fr_60px] sm:grid-cols-[40px_3fr_2fr_80px] gap-2 p-2 sm:p-2.5 items-center rounded-lg cursor-pointer transition-colors ${
+                                        isCurrentTrack ? 'bg-neutral-800/80 text-green-400' : 'hover:bg-neutral-800/50 text-neutral-300'
                                     }`}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`Play ${item.name}`}
                                 >
-                                    <img
-                                        className='w-full h-[250px] rounded-lg object-cover mb-4'
-                                        src={item.image}
-                                        alt={item.name}
-                                    />
-                                    <div>
-                                        <p className='text-white font-bold text-lg truncate'>{item.name}</p>
-                                        <p className='text-gray-300 text-sm mt-1 truncate'>{item.desc}</p>
-                                        <div className="flex items-center justify-between mt-3">
-                                            <p className='text-gray-400 text-xs'>{item.album}</p>
-                                            <p className='text-gray-400 text-xs'>{item.duration}</p>
+                                    <span className="text-neutral-500 text-xs font-mono text-center">
+                                        {isCurrentTrack && playStatus ? '▶' : index + 1}
+                                    </span>
+                                    <div className='flex items-center gap-3 min-w-0'>
+                                        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                                            <OptimizedImage
+                                                className="w-full h-full"
+                                                src={item.image}
+                                                alt={item.name}
+                                                width={60}
+                                                height={60}
+                                            />
+                                        </div>
+                                        <div className="min-w-0 truncate">
+                                            <p className={`text-sm font-medium truncate ${isCurrentTrack ? 'text-green-400' : 'text-white'}`}>
+                                                {item.name}
+                                            </p>
+                                            <p className='text-xs text-neutral-400 truncate'>{item.desc}</p>
                                         </div>
                                     </div>
+                                    <p className='text-xs text-neutral-400 truncate hidden sm:block'>{item.album}</p>
+                                    <p className='text-xs text-neutral-400 text-right font-mono'>{item.duration}</p>
                                 </div>
-                            ))}
-                        </div>
-                        {/* Navigation dots */}
-                        <div className="flex justify-center gap-2 mt-4">
-                            {likedSongsData.slice(0, Math.min(likedSongsData.length, 10)).map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setActiveIndex(index)}
-                                    className={`w-2 h-2 rounded-full transition-all ${
-                                        index === activeIndex 
-                                            ? 'bg-purple-500 w-8' 
-                                            : 'bg-gray-500 hover:bg-gray-400'
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Songs list */}
-            <div className="mt-10 mb-20">
-                {likedSongsData.length > 0 ? (
-                    <div className="flex flex-col gap-1">
-                        {likedSongsData.map((item, index) => (
-                            <div
-                                key={item._id}
-                                onClick={() => {
-                                    if (track._id === item._id && playStatus) {
-                                        pause();
-                                    } else {
-                                        playWithId(item._id);
-                                    }
-                                }}
-                                className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff26] cursor-pointer rounded-md group"
-                            >
-                                <p className='text-white'>{index + 1}</p>
-                                <div className='flex items-center gap-4'>
-                                    <img
-                                        className='w-10 h-10 rounded object-cover'
-                                        src={item.image}
-                                        alt={item.name}
-                                    />
-                                    <div>
-                                        <p className='text-white font-medium'>{item.name}</p>
-                                        <p className='text-sm'>{item.desc}</p>
-                                    </div>
-                                </div>
-                                <p className='text-[15px]'>{item.album}</p>
-                                <p className='text-[15px] text-center'>{item.duration}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
-                    <div className="text-center py-20">
-                        <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <p className="text-2xl text-gray-400 mb-2">No liked songs yet</p>
-                        <p className="text-gray-500">Songs you like will appear here</p>
+                    <div className="text-center py-20 bg-neutral-900/40 rounded-xl border border-neutral-800/60 mt-4">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-neutral-800 rounded-full flex items-center justify-center text-neutral-500">
+                            <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </div>
+                        <p className="text-xl font-bold text-white mb-2">No liked songs yet</p>
+                        <p className="text-neutral-400 text-sm max-w-sm mx-auto">
+                            Tap the heart icon on any song while playing to save it here for quick listening.
+                        </p>
                     </div>
                 )}
             </div>
-        </>
-    )
-}
+        </div>
+    );
+};
 
-export default Library
+export default React.memo(Library);

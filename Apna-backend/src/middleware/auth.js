@@ -11,7 +11,9 @@ const authAdmin = async (req, res, next) => {
             return res.json({ success: false, message: "Not Authorized" });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret");
+        if (!req.body) req.body = {};
         req.body.userId = decoded.id;
+        req.userId = decoded.id;
         next();
     } catch (error) {
         console.log(error);

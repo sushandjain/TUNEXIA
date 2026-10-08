@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import 'dotenv/config';
 import songRoute from './src/routes/songRoute.js';
 import connectdb from './src/config/mongodb.js';
@@ -7,23 +8,59 @@ import connectCloudinary from './src/config/cloudinary.js';
 import albumRoute from './src/routes/albumRoute.js';
 import adminRoute from './src/routes/adminRoute.js';
 import debugRoute from './src/routes/debugRoute.js';
+import externalMusicRoute from './src/routes/externalMusicRoute.js';
+import syncRoute from './src/routes/syncRoute.js';
+import { initScheduler } from './src/services/syncService.js';
 
 const app = express();
 const port = process.env.PORT || 3004;
 
-// Middleware - MUST be BEFORE routes
+// Security & Optimization
+app.disable('x-powered-by');
+
+// Compression middleware (Gzip / Brotli)
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+
+// Standard Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test route
+// HTTP Caching middleware for read-only catalog lists
+app.use(['/api/song/list', '/api/album/list'], (req, res, next) => {
+  if (req.method === 'GET' && !req.query.search && !req.query.source) {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
+  next();
+});
+
+// Health check endpoint (for server keep-alive and pinging)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test root route
 app.get('/', (req, res) => {
   res.json({ 
     success: true, 
-    message: 'Server is working!',
+    message: 'Tunexia API server is active',
+    version: '2.5.0',
     endpoints: {
-      addSong: 'POST /api/song/add',
-      listSongs: 'GET /api/song/list'
+      songs: 'GET /api/song/list',
+      albums: 'GET /api/album/list',
+      externalMusic: '/api/external-music',
+      sync: '/api/sync',
+      health: 'GET /health'
     }
   });
 });
@@ -32,6 +69,8 @@ app.get('/', (req, res) => {
 app.use('/api/song', songRoute);
 app.use('/api/album', albumRoute);
 app.use('/api/admin', adminRoute);
+app.use('/api/external-music', externalMusicRoute);
+app.use('/api/sync', syncRoute);
 app.use('/api/debug', debugRoute);
 
 // 404 handler
@@ -54,58 +93,45 @@ app.use((err, req, res, next) => {
 // Start server function
 const startServer = async () => {
   try {
-    // Check required environment variables
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI environment variable is missing');
     }
 
-    // Connect to MongoDB first
+    // Connect to MongoDB
     await connectdb();
+
+    // Initialize Auto-Sync Scheduler
+    await initScheduler();
 
     const hasCloudinaryConfig =
       process.env.CLOUDINARY_NAME &&
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET;
 
-    // Connect to Cloudinary only when credentials are available.
     if (hasCloudinaryConfig) {
       connectCloudinary();
     } else {
       console.warn('⚠️ Cloudinary credentials missing: upload endpoints may fail, list/login will still work.');
     }
 
-    // Start listening
     app.listen(port, () => {
       console.log('=================================');
-      console.log(`✅ Server running successfully!`);
+      console.log(`✅ Tunexia API Server running successfully!`);
       console.log(`🌐 URL: http://localhost:${port}`);
-      console.log(`📝 Test: http://localhost:${port}/`);
-      console.log(`🎵 Add Song: POST http://localhost:${port}/api/song/add`);
-      console.log(`📋 List Songs: GET http://localhost:${port}/api/song/list`);
-      console.log(`🅰️ Add Album: POST http://localhost:${port}/api/album/add`);
-      console.log(`📚 List Albums: GET http://localhost:${port}/api/album/list`);
+      console.log(`💓 Health: http://localhost:${port}/health`);
+      console.log(`📋 Songs: GET http://localhost:${port}/api/song/list`);
+      console.log(`🔍 External API: /api/external-music`);
+      console.log(`🔄 Sync Engine: /api/sync`);
       console.log('=================================');
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
-    console.log('\n⚠️  Environment Variables Required:');
-    console.log('   MONGODB_URI - Your MongoDB Atlas connection string');
-    console.log('   CLOUDINARY_NAME - Your Cloudinary cloud name (required for uploads)');
-    console.log('   CLOUDINARY_API_KEY - Your Cloudinary API key (required for uploads)');
-    console.log('   CLOUDINARY_API_SECRET - Your Cloudinary API secret (required for uploads)');
-    console.log('\n⚠️  Troubleshooting:');
-    console.log('1. Add all environment variables in Render dashboard');
-    console.log('2. Make sure MongoDB Atlas allows connections from all IPs (0.0.0.0/0)');
-    console.log('3. Verify MongoDB connection string format');
-    console.log('3. Verify port 3004 is not in use');
     process.exit(1);
   }
 };
 
-// Start the server
 startServer();
 
-// Handle unhandled rejections
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err.message);
   process.exit(1);

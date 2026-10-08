@@ -2,6 +2,17 @@ import { v2 as cloudinary } from "cloudinary";
 import albumModel from "../models/albumModel.js";
 import fs from "fs";
 
+// Lightweight in-memory cache for albums
+let albumsCache = {
+  data: null,
+  timestamp: 0,
+  ttl: 60 * 1000 // 60 seconds
+};
+
+export const invalidateAlbumsCache = () => {
+  albumsCache = { data: null, timestamp: 0, ttl: 60 * 1000 };
+};
+
 const addAlbum = async (req, res) => {
   try {
     const name = req.body.name;
@@ -25,21 +36,27 @@ const addAlbum = async (req, res) => {
 
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
-      folder: "albums"
+      folder: "albums",
+      transformation: [
+        { width: 600, height: 600, crop: "fill" },
+        { fetch_format: "auto", quality: "auto" }
+      ]
     });
 
-    // Delete local file after upload
-    fs.unlinkSync(imageFile.path);
+    try { fs.unlinkSync(imageFile.path); } catch (e) {}
 
     const albumData = {
-      name,
-      desc,
-      bgColor,
+      name: name.trim(),
+      desc: desc.trim(),
+      bgColor: bgColor.trim(),
       image: imageUpload.secure_url
     };
 
     const album = new albumModel(albumData);
     await album.save();
+
+    // Invalidate in-memory cache
+    invalidateAlbumsCache();
 
     res.status(201).json({
       success: true,
@@ -49,9 +66,7 @@ const addAlbum = async (req, res) => {
 
   } catch (error) {
     if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {}
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
     
     res.status(500).json({
@@ -63,7 +78,21 @@ const addAlbum = async (req, res) => {
 
 const listAlbum = async (req, res) => {
   try {
-    const albums = await albumModel.find({}).sort({ createdAt: -1 });
+    const now = Date.now();
+    if (albumsCache.data && (now - albumsCache.timestamp < albumsCache.ttl)) {
+      return res.json({
+        success: true,
+        cached: true,
+        count: albumsCache.data.length,
+        albums: albumsCache.data
+      });
+    }
+
+    const albums = await albumModel.find({}).select('-__v').sort({ createdAt: -1 }).lean();
+
+    albumsCache.data = albums;
+    albumsCache.timestamp = now;
+
     res.json({
       success: true,
       count: albums.length,
@@ -79,14 +108,6 @@ const listAlbum = async (req, res) => {
 
 const removeAlbum = async (req, res) => {
   try {
-    console.log('removeAlbum called:', {
-      method: req.method,
-      contentType: req.headers['content-type'],
-      body: req.body,
-      params: req.params,
-      query: req.query,
-    });
-
     const id = req.body?.id || req.params?.id || req.query?.id;
 
     if (!id) {
@@ -104,6 +125,9 @@ const removeAlbum = async (req, res) => {
         message: "Album not found"
       });
     }
+
+    // Invalidate cache
+    invalidateAlbumsCache();
 
     res.json({
       success: true,

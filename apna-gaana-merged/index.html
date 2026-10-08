@@ -3,10 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TuneXIA - Music App</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content="Tunexia - High-performance mobile-first music streaming app." />
+
+    <!-- Performance Preconnect & DNS Prefetch -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fastly.picsum.photos" crossorigin />
+    <link rel="dns-prefetch" href="https://fastly.picsum.photos" />
+
+    <title>TuneXIA - Fast Music Streaming</title>
   </head>
-  <body>
+  <body class="bg-black text-white antialiased selection:bg-green-500 selection:text-black">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
