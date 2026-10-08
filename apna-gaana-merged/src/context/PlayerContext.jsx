@@ -44,6 +44,8 @@ const PlayerContextProvider = (props) => {
         } catch {}
         return null;
     });
+    const [playStatus, setPlayStatus] = useState(false);
+    const [isLooping, setIsLooping] = useState(false);
     const [isShuffle, setIsShuffle] = useState(false);
     const [volume, setVolume] = useState(0.7);
     const [isMuted, setIsMuted] = useState(false);
