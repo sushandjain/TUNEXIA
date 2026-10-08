@@ -22,6 +22,9 @@ const PlayerContextProvider = (props) => {
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+    const [isQueueOpen, setIsQueueOpen] = useState(false);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1);
+    const [sleepTimerMinutes, setSleepTimerMinutes] = useState(null);
 
     const [time, setTime] = useState({
         currentTime: { second: 0, minute: 0 },
@@ -60,16 +63,67 @@ const PlayerContextProvider = (props) => {
         }
     };
 
-    const toggleMute = () => {
-        setIsMuted(!isMuted);
-        if (audioRef.current) {
-            if (!isMuted) {
-                audioRef.current.volume = 0;
-            } else {
-                audioRef.current.volume = volume || 0.7;
+    const toggleMute = useCallback(() => {
+        setIsMuted(prev => {
+            const nextMuted = !prev;
+            if (audioRef.current) {
+                audioRef.current.volume = nextMuted ? 0 : (volume || 0.7);
             }
+            return nextMuted;
+        });
+    }, [volume]);
+
+    const cyclePlaybackSpeed = useCallback(() => {
+        const speeds = [1, 1.25, 1.5, 0.75];
+        setPlaybackSpeed(prev => {
+            const next = speeds[(speeds.indexOf(prev) + 1) % speeds.length];
+            if (audioRef.current) {
+                audioRef.current.playbackRate = next;
+            }
+            toast.info(`Playback Speed: ${next}x`, { autoClose: 1500 });
+            return next;
+        });
+    }, []);
+
+    const shareTrack = useCallback((songToShare) => {
+        const target = songToShare || track;
+        if (!target) return;
+        const text = `Listen to "${target.name}" by ${target.desc || target.album} on Tunexia!`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(`${text} ${window.location.origin}`)
+                .then(() => toast.success(`Link for "${target.name}" copied to clipboard!`))
+                .catch(() => toast.info(`Sharing: ${text}`));
+        } else {
+            toast.info(`Track: ${text}`);
         }
-    };
+    }, [track]);
+
+    // Dynamic document title update
+    useEffect(() => {
+        if (track && playStatus) {
+            document.title = `▶ ${track.name} • ${track.desc || track.album} | Tunexia`;
+        } else if (track) {
+            document.title = `⏸ ${track.name} • ${track.desc || track.album} | Tunexia`;
+        } else {
+            document.title = 'Tunexia - Stream Music';
+        }
+    }, [track, playStatus]);
+
+    // Sleep timer countdown
+    useEffect(() => {
+        if (!sleepTimerMinutes) return;
+        toast.info(`Sleep timer set for ${sleepTimerMinutes} minutes`);
+        const timer = setTimeout(() => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            setPlayStatus(false);
+            setSleepTimerMinutes(null);
+            toast.info('Sleep timer finished: Audio paused.');
+        }, sleepTimerMinutes * 60 * 1000);
+
+        return () => clearTimeout(timer);
+    }, [sleepTimerMinutes]);
 
     // Time update listener
     useEffect(() => {
@@ -324,6 +378,37 @@ const PlayerContextProvider = (props) => {
         }
     }, [playStatus]);
 
+    // Global Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            const tag = e.target?.tagName?.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable) {
+                return;
+            }
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (playStatus) pause();
+                else play();
+            } else if (e.code === 'ArrowRight' && !e.shiftKey) {
+                if (audioRef.current) {
+                    audioRef.current.currentTime = Math.min((audioRef.current.duration || 0), (audioRef.current.currentTime || 0) + 5);
+                }
+            } else if (e.code === 'ArrowLeft' && !e.shiftKey) {
+                if (audioRef.current) {
+                    audioRef.current.currentTime = Math.max(0, (audioRef.current.currentTime || 0) - 5);
+                }
+            } else if (e.key === 'm' || e.key === 'M') {
+                toggleMute();
+            } else if (e.key === 'l' || e.key === 'L') {
+                if (track?._id) toggleLike(track._id);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [playStatus, track, toggleMute, toggleLike]);
+
     const contextValue = {
         audioRef,
         seekBar,
@@ -343,7 +428,11 @@ const PlayerContextProvider = (props) => {
         likedSongs, toggleLike,
         isLoadingAudio,
         searchQuery, setSearchQuery,
-        isPlayerExpanded, setIsPlayerExpanded
+        isPlayerExpanded, setIsPlayerExpanded,
+        isQueueOpen, setIsQueueOpen,
+        playbackSpeed, cyclePlaybackSpeed,
+        sleepTimerMinutes, setSleepTimerMinutes,
+        shareTrack
     };
 
     return (
